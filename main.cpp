@@ -8,43 +8,109 @@
 #include <experimental/random>
 
 
-/* Write a short data generator that creates 2x one million <key, value> pairs.
+/*********************************************************************************************************
+ * Write a short data generator that creates 2x one million <key, value> pairs.
  * Key and Value should be two integers, keys randomly generated (between 0 and 100.000, with repetition).
- * Store both data sets into two vectors. Implement three functions that perform a regular database join between both
- * vectors based on equal keys (e.g. <5,128> from the first vector and <5,28> from the second vector
- * result into <5,128,28>):
- *      First function: Nested Loop (compare each tuple in the first vector with all tuples of the second vector)
+ * Store both data sets into two vectors. Implement three functions that perform a regular database join
+ * between both vectors based on equal keys (e.g. <5,128> from the first vector and <5,28> from the second
+ * vector result into <5,128,28>):
+ *      First function: Nested Loop (compare each tuple in the first vector with all tuples of the second
+ *      vector)
  *
- *      Second function: Hash Join (insert all tuples of the first vector in a hash table, probe afterwards with all
- *      tuples of the second vector)
+ *      Second function: Hash Join (insert all tuples of the first vector in a hash table, probe afterwards
+ *      with all tuples of the second vector)
  *
- *      Third function: Sort-Merge Join (sort both vectors according to their key, afterwards, iterate over the elements
- *      for matches)
+ *      Third function: Sort-Merge Join (sort both vectors according to their key, afterwards, iterate over
+ *      the elements for matches)
  *
  * Measure the execution time for all three functions (==join algorithms) to join the two million tuples.
- * Which implementation is the fastest? After measurement, store the join results in one .txt file each - are they equal?
+ * Which implementation is the fastest? After measurement, store the join results in one .txt file each -
+ * are they equal? use the standard library (e.g. std::sort, std::vector, std::unordered_multimap, rand(),
+ * etc.).
  *
- * use the standard library (e.g. std::sort, std::vector, std::unordered_multimap, rand(), etc.).
  *
- *
- */
+ ***********************************************************************************************************/
 
 using namespace std;
 
 // Vector type to hold key value pair
+
 typedef std::vector<std::tuple<int , int>> KeyValueType;
 
-//
+// Vector type to hold the result
+
+typedef std::vector<std::tuple<int , int, int>> ResultType;
+
+// Nested loop join
+// It takes two data sets of key value pair(KeyValueType) and apply the nested loop join and returns ResultType
+
+
+/*ResultType NestedLoopJoin ( const KeyValueType& ds1, const KeyValueType& ds2)
+{
+    ResultType result;
+    for  (auto it1 : ds1){
+
+    for (auto it2 : ds2){
+        if ( std::get<0>(it1) == std::get<0>(it2)){
+            result.push_back(std::make_tuple(std::get<0>(it1), std::get<1>(it1), std::get<1>(it2)));
+
+        }
+    }
+    }
+
+    return result;
+}*/
+
+// Sort Merge Join
+
+/* It takes two data sets of key value pair(KeyValueType) and apply sorting algorithm on each set and then iterate
+ * both data sets once to merge the key value pair and return the ResultType
+ */
+
+ResultType SortMergeJoin (KeyValueType ds1 , KeyValueType ds2){
+
+    ResultType result;
+    std::sort(ds1.begin(), ds1.end());
+   /* for (auto a : ds1) {
+        std::cout << std::get<0>(a) << " , " << std::get<1>(a)  << endl;
+    }*/
+
+    std::sort(ds2.begin(), ds2.end());
+    /*for (auto a : ds2) {
+        std::cout << std::get<0>(a) << " , " << std::get<1>(a)  << endl;
+    }*/
+
+    auto iteratorDs1 = ds1.begin();
+    auto iteratorDs2 = ds2.begin();
+    while(iteratorDs1 != ds1.end() && iteratorDs2 != ds2.end() )
+    {
+         if (std::get<0>(*iteratorDs1) == std::get<0>(*iteratorDs2)){
+             result.push_back(std::make_tuple(std::get<0>(*iteratorDs1), std::get<1>(*iteratorDs1), std::get<1>(*iteratorDs2)));
+             iteratorDs1 ++;
+         } else if (std::get<0>(*iteratorDs1) < std::get<0>(*iteratorDs2)){
+             iteratorDs1 ++;
+         }
+         else if (std::get<0>(*iteratorDs1) > std::get<0>(*iteratorDs2))
+            {
+             iteratorDs2++;
+            }
+
+    }
+
+    return result;
+}
+
+// Data Generator
 KeyValueType dataGenerator()
 {
     KeyValueType data;
 
     int key =0 ,value = 0;
 
-    for (int i = 0; i < 1000000; i++) {
+    for (int i = 0; i < 10; i++) {
 
-        key = std::experimental::randint(1, 1000000);
-        value = std::experimental::randint(1, 1000000);
+        key = std::experimental::randint(1, 100);
+        value = std::experimental::randint(1, 100);
 
         data.push_back(std::make_tuple(key,value));
     }
@@ -58,30 +124,56 @@ int main() {
     KeyValueType dataSet1 = dataGenerator();
     KeyValueType dataSet2 = dataGenerator();
 
-// Creating a file to hold the data set
-    std::ofstream file1, file2;
+    // Applying Sort Merge Join
+    ResultType resultSMJoin = SortMergeJoin(dataSet1,dataSet2);
+
+    // Applying Nested Loop
+    //ResultType resultNL = NestedLoopJoin(dataSet1,dataSet2);
+
+    // Creating a file to hold the data set
+    std::ofstream file1, file2, resultNLfile, resultSMJoinFile;
 
     // Opening the files
 
     file1.open ("Dataset1.csv");
     file2.open ("Dataset2.csv");
+    resultNLfile.open("ResultNL.csv");
+    resultSMJoinFile.open("ResultSMJoin.csv");
 
     // Writing into the csv file
     file1 << "Key , Value\n";
     file2 << "Key , Value\n";
+    resultNLfile << "Key , Value , Value\n";
+    resultSMJoinFile << "Key , Value , Value\n";
 
-    //
+    //Writing into the files
     for  (auto it : dataSet1){
         file1 << std::get<0>(it) << " , " << std::get<1>(it) << endl;
     }
+
 
     for  (auto it : dataSet2){
         file2 << std::get<0>(it) << " , " << std::get<1>(it) << endl;
     }
 
+
+    /*
+    for (auto it : resultNL){
+        resultNLfile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
+    }
+*/
+
+    for (auto it : resultSMJoin){
+        resultSMJoinFile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
+    }
+
+
     // closing the files
     file1.close();
     file2.close();
-    
+    resultNLfile.close();
+    resultSMJoinFile.close();
+
+
     return 0;
 }
