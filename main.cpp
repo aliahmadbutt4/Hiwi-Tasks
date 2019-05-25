@@ -6,7 +6,7 @@
 #include <ctime>
 #include <fstream>
 #include <experimental/random>
-
+#include <chrono>
 
 /*********************************************************************************************************
  * Write a short data generator that creates 2x one million <key, value> pairs.
@@ -45,7 +45,7 @@ typedef std::vector<std::tuple<int , int, int>> ResultType;
 // It takes two data sets of key value pair(KeyValueType) and apply the nested loop join and returns ResultType
 
 
-/*ResultType NestedLoopJoin ( const KeyValueType& ds1, const KeyValueType& ds2)
+ResultType NestedLoopJoin ( const KeyValueType& ds1, const KeyValueType& ds2)
 {
     ResultType result;
     for  (auto it1 : ds1){
@@ -59,26 +59,21 @@ typedef std::vector<std::tuple<int , int, int>> ResultType;
     }
 
     return result;
-}*/
+}
 
 // Sort Merge Join
 
 /* It takes two data sets of key value pair(KeyValueType) and apply sorting algorithm on each set and then iterate
- * both data sets once to merge the key value pair and return the ResultType
+ * both data sets once to merge the key value pair and return the ResultType. This implementation is missing co-grouping
+ * Can be added later?
  */
 
 ResultType SortMergeJoin (KeyValueType ds1 , KeyValueType ds2){
 
     ResultType result;
     std::sort(ds1.begin(), ds1.end());
-   /* for (auto a : ds1) {
-        std::cout << std::get<0>(a) << " , " << std::get<1>(a)  << endl;
-    }*/
 
     std::sort(ds2.begin(), ds2.end());
-    /*for (auto a : ds2) {
-        std::cout << std::get<0>(a) << " , " << std::get<1>(a)  << endl;
-    }*/
 
     auto iteratorDs1 = ds1.begin();
     auto iteratorDs2 = ds2.begin();
@@ -107,10 +102,10 @@ KeyValueType dataGenerator()
 
     int key =0 ,value = 0;
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 1000; i++) {
 
-        key = std::experimental::randint(1, 100);
-        value = std::experimental::randint(1, 100);
+        key = std::experimental::randint(1, 1000);
+        value = std::experimental::randint(1, 1000);
 
         data.push_back(std::make_tuple(key,value));
     }
@@ -124,11 +119,26 @@ int main() {
     KeyValueType dataSet1 = dataGenerator();
     KeyValueType dataSet2 = dataGenerator();
 
-    // Applying Sort Merge Join
+    // Applying Sort Merge Join and calculating the execution time
+
+    auto start = std::chrono::high_resolution_clock::now();
+
     ResultType resultSMJoin = SortMergeJoin(dataSet1,dataSet2);
 
-    // Applying Nested Loop
-    //ResultType resultNL = NestedLoopJoin(dataSet1,dataSet2);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+
+    std::cout<< "Execution Time for Sort-Merge Join : " << diff << " microseconds" << std::endl;
+
+    // Applying Nested Loop and Calculating the execution time
+    start = std::chrono::high_resolution_clock::now();
+
+    ResultType resultNL = NestedLoopJoin(dataSet1,dataSet2);
+
+    end = std::chrono::high_resolution_clock::now();
+    diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+
+    std::cout<< "Execution Time for Nested Loop Join : " << diff << " microseconds" << std::endl;
 
     // Creating a file to hold the data set
     std::ofstream file1, file2, resultNLfile, resultSMJoinFile;
@@ -157,11 +167,11 @@ int main() {
     }
 
 
-    /*
+
     for (auto it : resultNL){
         resultNLfile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
     }
-*/
+
 
     for (auto it : resultSMJoin){
         resultSMJoinFile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
