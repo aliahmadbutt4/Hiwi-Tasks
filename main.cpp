@@ -48,6 +48,8 @@ typedef std::vector<std::tuple<int , int, int>> ResultType;
 ResultType NestedLoopJoin ( const KeyValueType& ds1, const KeyValueType& ds2)
 {
     ResultType result;
+    try {
+
     for  (auto it1 : ds1){
 
     for (auto it2 : ds2){
@@ -57,12 +59,38 @@ ResultType NestedLoopJoin ( const KeyValueType& ds1, const KeyValueType& ds2)
         }
     }
     }
+    } catch (const std::exception& e){
+        std::cout << e.what();
+    }
+    return result;
+}
+
+/********************Hash join***********************************************************************************************
+ * This function uses two data sets of "KeyValueType" the first data set 'ds1' is converted to unordered_multimap<int, int>
+ * 'DS1' due to the property to unordered_multimap of storing elements by applying hash function. Next 'key' from ds2 is
+ * used to locate the bucket in 'DS1' if found then each element inside the bucket is joined the 'ds2' key and resulting
+ * into 'ResultType' container.
+ ***************************************************************************************************************************/
+
+ResultType HashJoin (const KeyValueType& ds1, const KeyValueType& ds2){
+
+    ResultType result;
+    std::unordered_multimap<int ,int> DS1;
+    for (auto it : ds1)
+        DS1.emplace(std::get<0>(it), std::get<1>(it));
+
+    for (auto it2 : ds2) {
+        auto range = DS1.equal_range(std::get<0>(it2));
+        if(range.first != range.second)
+            for_each(range.first, range.second, [it2, &result](std::unordered_multimap<int, int>::value_type
+                                                               &x ){result.push_back(make_tuple(x.first, x.second, std::get<1>(it2) ) ); } );
+    }
 
     return result;
 }
 
-// Sort Merge Join
 
+// Sort Merge Join
 /* It takes two data sets of key value pair(KeyValueType) and apply sorting algorithm on each set and then iterate
  * both data sets once to merge the key value pair and return the ResultType. This implementation is missing co-grouping
  * Can be added later?
@@ -95,6 +123,8 @@ ResultType SortMergeJoin (KeyValueType ds1 , KeyValueType ds2){
     return result;
 }
 
+
+
 // Data Generator
 KeyValueType dataGenerator()
 {
@@ -102,10 +132,10 @@ KeyValueType dataGenerator()
 
     int key =0 ,value = 0;
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1000000; i++) {
 
-        key = std::experimental::randint(1, 1000);
-        value = std::experimental::randint(1, 1000);
+        key = std::experimental::randint(1, 1000000);
+        value = std::experimental::randint(1, 1000000);
 
         data.push_back(std::make_tuple(key,value));
     }
@@ -119,7 +149,7 @@ int main() {
     KeyValueType dataSet1 = dataGenerator();
     KeyValueType dataSet2 = dataGenerator();
 
-    // Applying Sort Merge Join and calculating the execution time
+/*********** Applying Sort Merge Join and calculating the execution time *************/
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -130,7 +160,20 @@ int main() {
 
     std::cout<< "Execution Time for Sort-Merge Join : " << diff << " microseconds" << std::endl;
 
-    // Applying Nested Loop and Calculating the execution time
+/**************     Applying Hash Join and Calculating Execution Time    **************/
+
+
+    start = std::chrono::high_resolution_clock::now();
+
+    ResultType resultHJ = HashJoin(dataSet1,dataSet2);
+
+    end = std::chrono::high_resolution_clock::now();
+    diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+
+    std::cout<< "Execution Time for Hash Join : " << diff << " microseconds" << std::endl;
+
+/**************     Applying Nested Loop and Calculating the execution time     ***************/
+
     start = std::chrono::high_resolution_clock::now();
 
     ResultType resultNL = NestedLoopJoin(dataSet1,dataSet2);
@@ -140,21 +183,25 @@ int main() {
 
     std::cout<< "Execution Time for Nested Loop Join : " << diff << " microseconds" << std::endl;
 
+
+
     // Creating a file to hold the data set
-    std::ofstream file1, file2, resultNLfile, resultSMJoinFile;
+    std::ofstream file1, file2, resultNLfile, resultHashJoinFile, resultSMJoinFile;
 
     // Opening the files
 
     file1.open ("Dataset1.csv");
     file2.open ("Dataset2.csv");
-    resultNLfile.open("ResultNL.csv");
-    resultSMJoinFile.open("ResultSMJoin.csv");
+    resultNLfile.open("ResultNL.txt");
+    resultSMJoinFile.open("ResultSMJoin.txt");
+    resultHashJoinFile.open("ResultHashJoin.txt");
 
     // Writing into the csv file
     file1 << "Key , Value\n";
     file2 << "Key , Value\n";
     resultNLfile << "Key , Value , Value\n";
     resultSMJoinFile << "Key , Value , Value\n";
+    resultHashJoinFile << "Key , Value , Value\n";
 
     //Writing into the files
     for  (auto it : dataSet1){
@@ -168,8 +215,8 @@ int main() {
 
 
 
-    for (auto it : resultNL){
-        resultNLfile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
+    for (auto it : resultHJ){
+        resultHashJoinFile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
     }
 
 
@@ -178,11 +225,17 @@ int main() {
     }
 
 
+    for (auto it : resultNL){
+        resultNLfile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
+    }
+
+
     // closing the files
     file1.close();
     file2.close();
     resultNLfile.close();
     resultSMJoinFile.close();
+    resultHashJoinFile.close();
 
 
     return 0;
