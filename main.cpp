@@ -263,7 +263,5 @@ int main() {
     resultNLfile.close();
     resultSMJoinFile.close();
     resultHashJoinFile.close();
-
-
     return 0;
 }
