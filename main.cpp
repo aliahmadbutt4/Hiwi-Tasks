@@ -31,41 +31,44 @@
  *
  ***********************************************************************************************************/
 
-using namespace std;
 
 // Vector type to hold key value pair
 
-typedef std::vector<std::tuple<int , int>> KeyValueType;
+typedef std::vector<std::pair<int , int>> KeyValueType;
 
 // Vector type to hold the result
 
 typedef std::vector<std::tuple<int , int, int>> ResultType;
 
+
 // Nested loop join
 // It takes two data sets of key value pair(KeyValueType) and apply the nested loop join and returns ResultType
+
 
 
 ResultType NestedLoopJoin ( const KeyValueType& ds1, const KeyValueType& ds2)
 {
     ResultType result;
+
     try {
+        for (auto it1 : ds1) {
+            for (auto it2 : ds2) {
+                if (std::get<0>(it1) == std::get<0>(it2)) {
+                    result.push_back(std::make_tuple(std::get<0>(it1), std::get<1>(it1), std::get<1>(it2)));
 
-    for  (auto it1 : ds1){
-
-    for (auto it2 : ds2){
-        if ( std::get<0>(it1) == std::get<0>(it2)){
-            result.push_back(std::make_tuple(std::get<0>(it1), std::get<1>(it1), std::get<1>(it2)));
-
+                }
+            }
         }
     }
-    }
-    } catch (const std::exception& e){
-        std::cout << e.what();
+        catch (const std::exception& e) {
+        std::cout << "Exception in NestedLoop Join " << e.what() << std::endl;
+
     }
     return result;
 }
 
-/********************Hash join***********************************************************************************************
+
+/******************** Hash join ********************************************************************************************
  * This function uses two data sets of "KeyValueType" the first data set 'ds1' is converted to unordered_multimap<int, int>
  * 'DS1' due to the property to unordered_multimap of storing elements by applying hash function. Next 'key' from ds2 is
  * used to locate the bucket in 'DS1' if found then each element inside the bucket is joined the 'ds2' key and resulting
@@ -75,17 +78,28 @@ ResultType NestedLoopJoin ( const KeyValueType& ds1, const KeyValueType& ds2)
 ResultType HashJoin (const KeyValueType& ds1, const KeyValueType& ds2){
 
     ResultType result;
-    std::unordered_multimap<int ,int> DS1;
-    for (auto it : ds1)
-        DS1.emplace(std::get<0>(it), std::get<1>(it));
+    try {
+        std::unordered_multimap<int, int> DS1;
 
-    for (auto it2 : ds2) {
-        auto range = DS1.equal_range(std::get<0>(it2));
-        if(range.first != range.second)
-            for_each(range.first, range.second, [it2, &result](std::unordered_multimap<int, int>::value_type
-                                                               &x ){result.push_back(make_tuple(x.first, x.second, std::get<1>(it2) ) ); } );
+        for (auto it : ds1) {
+            DS1.emplace(std::get<0>(it), std::get<1>(it));
+          }
+        std::cout << "Buckets : " << DS1.max_bucket_count()  << std::endl;
+        std::cout << "Size : " << DS1.size()  << std::endl;
+        std::cout << "Max Elements : " << DS1.max_size()  << std::endl;
+        for (auto it2 : ds2) {
+            auto range = DS1.equal_range(std::get<0>(it2));
+            if (range.first != range.second)
+                for_each(range.first, range.second, [it2, &result](std::unordered_multimap<int, int>::value_type
+                                                                   &x) {
+                    result.push_back(make_tuple(x.first, x.second, std::get<1>(it2)));
+                });
+        }
     }
+    catch (const std::exception& e) {
+        std::cout << "Exception in Hash Join " << e.what() << std::endl;
 
+    }
     return result;
 }
 
@@ -98,46 +112,58 @@ ResultType HashJoin (const KeyValueType& ds1, const KeyValueType& ds2){
 
 ResultType SortMergeJoin (KeyValueType ds1 , KeyValueType ds2){
 
+
     ResultType result;
+try {
     std::sort(ds1.begin(), ds1.end());
 
     std::sort(ds2.begin(), ds2.end());
 
     auto iteratorDs1 = ds1.begin();
     auto iteratorDs2 = ds2.begin();
-    while(iteratorDs1 != ds1.end() && iteratorDs2 != ds2.end() )
-    {
-         if (std::get<0>(*iteratorDs1) == std::get<0>(*iteratorDs2)){
-             result.push_back(std::make_tuple(std::get<0>(*iteratorDs1), std::get<1>(*iteratorDs1), std::get<1>(*iteratorDs2)));
-             iteratorDs1 ++;
-         } else if (std::get<0>(*iteratorDs1) < std::get<0>(*iteratorDs2)){
-             iteratorDs1 ++;
-         }
-         else if (std::get<0>(*iteratorDs1) > std::get<0>(*iteratorDs2))
-            {
-             iteratorDs2++;
-            }
+    while (iteratorDs1 != ds1.end() && iteratorDs2 != ds2.end()) {
+        if (std::get<0>(*iteratorDs1) == std::get<0>(*iteratorDs2)) {
+            result.push_back(
+                    std::make_tuple(std::get<0>(*iteratorDs1), std::get<1>(*iteratorDs1), std::get<1>(*iteratorDs2)));
+            iteratorDs1++;
+        } else if (std::get<0>(*iteratorDs1) < std::get<0>(*iteratorDs2)) {
+            iteratorDs1++;
+        } else if (std::get<0>(*iteratorDs1) > std::get<0>(*iteratorDs2)) {
+            iteratorDs2++;
+        }
 
     }
+}
+catch (const std::exception& e) {
+    std::cout << "Exception in Sort Merge Join " << e.what() << std::endl;
 
+}
     return result;
 }
 
 
 
 // Data Generator
-KeyValueType dataGenerator()
+KeyValueType dataGenerator(int number)
 {
     KeyValueType data;
+    try {
+        data.resize(number);
+         std::cout << "Max elements: "<< data.max_size() << std::endl;
+        int key = 0, value = 0;
 
-    int key =0 ,value = 0;
+        for (int i = 0; i < number; i++) {
 
-    for (int i = 0; i < 1000000; i++) {
+            key = std::experimental::randint(1, number);
+            value = std::experimental::randint(1, number);
 
-        key = std::experimental::randint(1, 1000000);
-        value = std::experimental::randint(1, 1000000);
+            data.push_back(std::make_pair(key, value));
+            //cout << "Size of : " << data.size() << endl;
+            //cout << "Capacity : " << data.capacity() << endl;
+        }
+    } catch (const std::bad_alloc& e) {
+        std::cout << "Allocation failed: " << e.what() << std::endl;
 
-        data.push_back(std::make_tuple(key,value));
     }
 
     return data;
@@ -145,20 +171,21 @@ KeyValueType dataGenerator()
 
 int main() {
 
+    std::cout << "Size of Int: " << sizeof(int) << std::endl;
     // DataSet Generation
-    KeyValueType dataSet1 = dataGenerator();
-    KeyValueType dataSet2 = dataGenerator();
+    KeyValueType dataSet1 = dataGenerator(1000000);
+    KeyValueType dataSet2 = dataGenerator(100);
 
-/*********** Applying Sort Merge Join and calculating the execution time *************/
+/**************     Applying Nested Loop and Calculating the execution time     ***************/
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    ResultType resultSMJoin = SortMergeJoin(dataSet1,dataSet2);
+    ResultType resultNL = NestedLoopJoin(dataSet1,dataSet2);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
-    std::cout<< "Execution Time for Sort-Merge Join : " << diff << " microseconds" << std::endl;
+    std::cout<< "Execution Time for Nested Loop Join : " << diff << " microseconds" << std::endl;
 
 /**************     Applying Hash Join and Calculating Execution Time    **************/
 
@@ -172,17 +199,17 @@ int main() {
 
     std::cout<< "Execution Time for Hash Join : " << diff << " microseconds" << std::endl;
 
-/**************     Applying Nested Loop and Calculating the execution time     ***************/
+
+/*********** Applying Sort Merge Join and calculating the execution time *************/
 
     start = std::chrono::high_resolution_clock::now();
 
-    ResultType resultNL = NestedLoopJoin(dataSet1,dataSet2);
+    ResultType resultSMJoin = SortMergeJoin(dataSet1,dataSet2);
 
-    end = std::chrono::high_resolution_clock::now();
-    diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+     end = std::chrono::high_resolution_clock::now();
+     diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
-    std::cout<< "Execution Time for Nested Loop Join : " << diff << " microseconds" << std::endl;
-
+    std::cout<< "Execution Time for Sort-Merge Join : " << diff << " microseconds" << std::endl;
 
 
     // Creating a file to hold the data set
@@ -205,28 +232,28 @@ int main() {
 
     //Writing into the files
     for  (auto it : dataSet1){
-        file1 << std::get<0>(it) << " , " << std::get<1>(it) << endl;
+        file1 << std::get<0>(it) << " , " << std::get<1>(it) << std::endl;
     }
 
 
     for  (auto it : dataSet2){
-        file2 << std::get<0>(it) << " , " << std::get<1>(it) << endl;
+        file2 << std::get<0>(it) << " , " << std::get<1>(it) << std::endl;
     }
 
 
 
     for (auto it : resultHJ){
-        resultHashJoinFile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
+        resultHashJoinFile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) << std::endl;
     }
 
 
     for (auto it : resultSMJoin){
-        resultSMJoinFile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
+        resultSMJoinFile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) << std::endl;
     }
 
 
     for (auto it : resultNL){
-        resultNLfile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) <<endl;
+        resultNLfile << std::get<0>(it)<< " , "<< std::get<1>(it) << " , "<< std::get<2>(it) << std::endl;
     }
 
 
