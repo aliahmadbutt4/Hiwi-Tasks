@@ -92,7 +92,7 @@ ResultType HashJoin (const KeyValueType& ds1, const KeyValueType& ds2){
             if (range.first != range.second)
                 for_each(range.first, range.second, [it2, &result](std::unordered_multimap<int, int>::value_type
                                                                    &x) {
-                    result.push_back(make_tuple(x.first, x.second, std::get<1>(it2)));
+                    result.push_back(std::make_tuple(x.first, x.second, std::get<1>(it2)));
                 });
         }
     }
