@@ -13,9 +13,6 @@
 #include <experimental/random>
 #include <chrono>
 
-
-
-
 // Vector type to hold key value pair
 
 typedef std::vector<std::tuple<int , int>> KeyValueType;
@@ -29,6 +26,7 @@ typedef std::vector<std::tuple<int , int, int>> ResultType;
 
 ResultType HashJoin (const KeyValueType& ds1, const KeyValueType& ds2){
 
+// Vector object to store the result
     ResultType result;
     std::unordered_multimap<int ,int> DS1;
     for (auto it : ds1)
