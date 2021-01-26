@@ -1,0 +1,212 @@
+{% extends 'base.html'%}
+
+
+{% block head %} 
+<style>
+    /*Add borders for tabs*/
+    .tab-content{
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        padding: 10px;
+    }
+    .nav-tabs{
+        margin-bottom: 0;
+    }
+</style>
+
+<title> Grizzly framework </title>
+
+
+<!--jQuery script for clearResults button-->
+<script>
+   $(document).ready(function(){
+  $("#clresults").click(function(){
+    $("#gcode").text("Hello world!");
+  });
+});
+</script>
+
+<!-- Loading the examples in both the text areas-->
+<script>
+    $(document).ready(function(){
+   $("#example1").click(function(){
+     $("#gcode").text("Example1");
+     $("#pcode").text("Example1");
+
+   });
+ });
+ </script>
+<script>
+    $(document).ready(function(){
+   $("#example2").click(function(){
+    $("#gcode").text("Example2");
+     $("#pcode").text("Example2");
+
+   });
+ });
+ </script>
+<script>
+    $(document).ready(function(){
+   $("#example3").click(function(){
+    $("#gcode").text("Example3");
+     $("#pcode").text("Example3");
+
+   });
+ });
+ </script>
+<script>
+    $(document).ready(function(){
+   $("#example4").click(function(){
+    $("#gcode").text("Example4");
+     $("#pcode").text("Example4");
+
+   });
+ });
+ </script>
+   
+<!--Chart for Stats-->
+<script>
+    // var getData = $.get(/datag1);
+    google.charts.load('current', { packages: ['corechart', 'bar']});
+    google.charts.setOnLoadCallback(drawExecution);
+    function drawExecution() {
+            var data = new google.visualization.DataTable();
+                data.addColumn('string', 'Run');
+                data.addColumn('number', 'Grizly');
+                data.addColumn({ type: 'string', role: 'annotation'});
+                data.addColumn('number', 'Pandas');
+                data.addColumn({type: 'string', role: 'annotation'});
+
+                data.addRows([
+                    ['Run1', 0.5, '0.5', .25, '.25'],
+                    ['Run2', 0.25, '0.25', .15, '.15'],
+                    ['Run3', 0.75, '0.75', .65, '.65'],   
+                ]);
+
+        var options = {
+            title: 'Client RAM consumption',
+            annotations: {
+            alwaysOutside: true,
+            textStyle: {
+                fontSize: 14,
+                color: '#000',
+                auraColor: 'none'
+            }
+            },
+            hAxis: {
+            title: 'Executions',
+            
+            viewWindow: {
+                min: [7, 30, 0],
+                max: [17, 30, 0]
+            }
+            },
+            vAxis: {
+            title: 'Memory Consumption (GB)'
+            }
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart1_div'));
+        var chart1 = new google.visualization.ColumnChart(document.getElementById('chart2_div'));
+        chart.draw(data, options);
+        chart1.draw(data, options);
+        
+        }
+
+</script>
+ 
+{% endblock %}
+
+
+{% block body %} 
+
+<div class="container">
+    <div class="row">
+    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+        <!-- Drop down menu for the set of pre-defined examples on the top left of the screen-->
+        <div class="dropdown">
+        <button class="btn btn-default btn-block dropdown-toggle col-12" style="margin-top: 12px;" type="button" id="dropdownMenu1" data-bs-toggle="dropdown" aria-expanded="false"> 
+            Select example
+        </button>
+
+        <ul class="dropdown-menu col-12">
+            <li><a class="dropdown-item" id="example1">Example1</a></li>
+            <li><a class="dropdown-item" id="example2">Example2</a></li>
+            <li><a class="dropdown-item" id="example3">Example3</a></li>
+            <li><a class="dropdown-item" id="example4">Example4</a></li>
+        </ul>
+        </div>
+
+        <!---Form below the dropdown button includes a label, a button, a text-area -->
+        <form action="/showSQL" method="POST">
+            <div class="form-group" style="margin-top: 6px;margin-bottom: 4px;">
+                <label class="col-10" for="gcode">Create a <b>Grizzly</b> script</label>
+                <input type="submit" value= "Show SQL" class="btn-sm btn-primary" style="padding: 5px;">
+                <textarea class="form-control col-12" style="margin-top: 4px; margin-bottom: 2px;" name="gcode" id="gcode" rows="8"></textarea>
+            </div>
+        </form>
+         
+    </div>  
+    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+        <form action="/pandasCode" method="POST" role="form">
+            <div class="form-group">
+                <div class="input-group" style="margin-top: 12px;">
+                    <span class="input-group-text col-2" id="basic-addon1">Name</span>
+                    <input type="text" id="codeExName" class="form-control" style="margin-right: 16px;" placeholder="Run" aria-label="codeexecution" aria-describedby="basic-addon1" disabled >
+                    <input type="submit" value="Run" class="btn btn-sm btn-success col-2">
+                </div>
+                <div class= "clearfix"></div>
+                <div class="form-group">
+                    <label for = "pcode" style="margin-top: 12px; margin-bottom: 8px;">Create a <b>Pandas</b> script</label>
+                    <textarea  class="form-control" name="pcode" id="pcode" rows="8"></textarea>
+                </div>
+                
+             
+            </div>
+     
+         </form>
+        
+    </div>
+    </div>
+   <div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        
+    <ul class = "nav nav-tabs" id="mytabs" role="tablist">
+       <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="stat-tab" data-bs-toggle="tab" href="#stats" role="tab" aria-controls="stats" aria-selected="true" >Statistics</a>
+       </li>
+
+       <li class="nav-item" role="presentation"> 
+           <a class="nav-link" id="results-tab" data-bs-toggle="tab"  href = "#results" role="tab" aria-controls="results" aria-selected="false"> Results </a>
+       </li>
+       <button id="clresults" type="submit" class="btn btn-sm" style="color: #f8d40a;
+        background-color: #fff ;
+        border-color: #f8d40a;
+        margin-left:auto;">Clear Results</button>
+    </ul>
+    <div class="tab-content" id="TabContents">
+        <div class="tab-pane fade show active" id="stats" role="tabpanel" aria-labelledby="stat-tab">
+            <div id="chart1_div"></div>
+            <div id="chart2_div"></div>
+        </div>
+        <div class="tab-pane fade" id="results" role="tabpanel" aria-labelledby="results-tab">This shows the tables</div>
+        
+    </div>
+
+    
+        
+    
+    </div>
+   </div>
+              
+    
+        
+        
+
+    
+       
+</div>
+
+
+{% endblock %}

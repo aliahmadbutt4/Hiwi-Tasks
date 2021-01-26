@@ -1,0 +1,115 @@
+{% extends 'base.html'%}
+
+
+{% block head %} 
+<style>
+    /*Add borders for tabs*/
+    .tab-content{
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        padding: 10px;
+    }
+    .nav-tabs{
+        margin-bottom: 0;
+    }
+</style>
+<title> Grizzly framework </title>
+
+
+<!--jQuery script for clearResults button-->
+<script>
+   $(document).ready(function(){
+  $("#clresults").click(function(){
+    $("#gcode").text("Hello world!");
+  });
+});
+</script>
+ 
+{% endblock %}
+
+
+{% block body %} 
+
+<div class="container">
+    <div class="row">
+    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+        <!-- Drop down menu for the set of pre-defined examples on the top left of the screen-->
+        <div class="dropdown">
+        <button class="btn btn-default btn-block dropdown-toggle col-12" style="margin-top: 12px;" type="button" id="dropdownMenu1" data-bs-toggle="dropdown" aria-expanded="false"> 
+            Select example
+        </button>
+
+        <ul class="dropdown-menu col-12">
+            <li><a href="#">Example1</a></li>
+            <li><a href="#">Example2</a></li>
+            <li><a href="#">Example3</a></li>
+            <li><a href="#">Example4</a></li>
+        </ul>
+        </div>
+
+        <!---Form below the dropdown button includes a label, a button, a text-area -->
+        <form role="form">
+            <div class="form-group" style="margin-top: 6px;margin-bottom: 4px;">
+                <label class="col-10" for="gcode">Create a <b>Grizzly</b> script</label>
+                <input type="submit" value= "Show SQL" class="btn-sm btn-primary" style="padding: 5px;">
+                <textarea class="form-control col-12" style="margin-top: 4px; margin-bottom: 2px;" id="gcode" rows="8"></textarea>
+            </div>
+        </form>
+         
+    </div>  
+    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+        <form role="form">
+            <div class="form-group">
+                <div class="input-group" style="margin-top: 12px;">
+                    <span class="input-group-text col-2" id="basic-addon1">Name</span>
+                    <input type="text" id="pdcode" class="form-control" style="margin-right: 16px;" placeholder="Run" aria-label="codeexecution" aria-describedby="basic-addon1" disabled >
+                    <input type="submit" value="Run" class="btn btn-sm btn-success col-2">
+                </div>
+                <div class= "clearfix"></div>
+                <div class="form-group">
+                    <label for = "pcode" style="margin-top: 12px; margin-bottom: 8px;">Create a <b>Pandas</b> script</label>
+                    <textarea  class="form-control" id="pcode" rows="8">{{content}}</textarea>
+                </div>
+                
+             
+            </div>
+     
+         </form>
+        
+    </div>
+    </div>
+   <div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        
+    <ul class = "nav nav-tabs">
+       <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#stats">Statistics</a>
+       </li>
+
+       <li class="nav-item">
+           <a class="nav-link" href = "#results"> Results </a>
+       </li>
+
+       <button id="clresults" type="submit" class="btn btn-sm" style="color: #f8d40a;
+        background-color: #fff ;
+        border-color: #f8d40a;
+        margin-left:auto;">Clear Results</button>
+    </ul>
+
+    
+        
+    
+    </div>
+   </div>
+              
+    
+        
+        
+
+    
+       
+</div>
+
+
+{% endblock %}
